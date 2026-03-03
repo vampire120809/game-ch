@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Mini Mario Game</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: skyblue;
+    font-family: sans-serif;
+  }
+
+  #game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(#87ceeb, #d0f4ff);
+  }
+
+  .ground {
+    position: absolute;
+    bottom: 0;
+    width: 200%;
+    height: 80px;
+    background: #7c4a1e;
+  }
+
+  #player {
+    position: absolute;
+    bottom: 80px;
+    left: 100px;
+    width: 40px;
+    height: 40px;
+    background: red;
+    border-radius: 10px;
+  }
+
+  .block {
+    position: absolute;
+    bottom: 200px;
+    width: 50px;
+    height: 50px;
+    background: gold;
+  }
+
+  .btns {
+    position: fixed;
+    bottom: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  button {
+    font-size: 20px;
+    padding: 20px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.3);
+    color: white;
+  }
+</style>
+</head>
+<body>
+
+<div id="game">
+  <div id="player"></div>
+  <div class="block" style="left:400px;"></div>
+  <div class="block" style="left:700px;"></div>
+  <div class="ground"></div>
+</div>
+
+<div class="btns">
+  <button id="left">←</button>
+  <button id="jump">JUMP</button>
+  <button id="right">→</button>
+</div>
+
+<script>
+const player = document.getElementById("player");
+let x = 100;
+let y = 0;
+let vy = 0;
+let gravity = 0.5;
+let jumping = false;
+
+let left = false;
+let right = false;
+
+function update() {
+  if (left) x -= 3;
+  if (right) x += 3;
+
+  vy += gravity;
+  y += vy;
+
+  if (y < 0) {
+    y = 0;
+    vy = 0;
+    jumping = false;
+  }
+
+  player.style.left = x + "px";
+  player.style.bottom = 80 + y + "px";
+
+  requestAnimationFrame(update);
+}
+update();
+
+document.getElementById("left").ontouchstart = () => left = true;
+document.getElementById("left").ontouchend = () => left = false;
+
+document.getElementById("right").ontouchstart = () => right = true;
+document.getElementById("right").ontouchend = () => right = false;
+
+document.getElementById("jump").ontouchstart = () => {
+  if (!jumping) {
+    vy = -12;
+    jumping = true;
+  }
+};
+
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") left = true;
+  if (e.key === "ArrowRight") right = true;
+  if (e.key === " ") {
+    if (!jumping) {
+      vy = -12;
+      jumping = true;
+    }
+  }
+});
+
+document.addEventListener("keyup", e => {
+  if (e.key === "ArrowLeft") left = false;
+  if (e.key === "ArrowRight") right = false;
+});
+</script>
+
+</body>
+</html>
