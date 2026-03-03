@@ -8,7 +8,6 @@
     margin: 0;
     overflow: hidden;
     background: skyblue;
-    font-family: sans-serif;
   }
 
   #game {
@@ -79,10 +78,12 @@
 
 <script>
 const player = document.getElementById("player");
+
 let x = 100;
 let y = 0;
 let vy = 0;
-let gravity = 0.5;
+
+const gravity = 0.6;
 let jumping = false;
 
 let left = false;
@@ -92,10 +93,12 @@ function update() {
   if (left) x -= 3;
   if (right) x += 3;
 
-  vy += gravity;
+  // 重力
+  vy -= gravity;
   y += vy;
 
-  if (y < 0) {
+  // 地面判定
+  if (y <= 0) {
     y = 0;
     vy = 0;
     jumping = false;
@@ -108,6 +111,7 @@ function update() {
 }
 update();
 
+// タッチ操作
 document.getElementById("left").ontouchstart = () => left = true;
 document.getElementById("left").ontouchend = () => left = false;
 
@@ -116,17 +120,18 @@ document.getElementById("right").ontouchend = () => right = false;
 
 document.getElementById("jump").ontouchstart = () => {
   if (!jumping) {
-    vy = -12;
+    vy = 12;   // 上に跳ぶ力
     jumping = true;
   }
 };
 
+// キーボード操作（PC用）
 document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") left = true;
   if (e.key === "ArrowRight") right = true;
   if (e.key === " ") {
     if (!jumping) {
-      vy = -12;
+      vy = 12;
       jumping = true;
     }
   }
