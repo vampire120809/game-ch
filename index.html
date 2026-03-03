@@ -2,145 +2,137 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Mini Mario Game</title>
+<title>Slide Puzzle</title>
 <style>
   body {
     margin: 0;
-    overflow: hidden;
-    background: skyblue;
+    background: #f3d1dc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: sans-serif;
   }
 
   #game {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(#87ceeb, #d0f4ff);
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 0 20px #c8b6a6;
+    text-align: center;
   }
 
-  .ground {
-    position: absolute;
-    bottom: 0;
-    width: 200%;
-    height: 80px;
-    background: #7c4a1e;
+  h1 {
+    color: #b5838d;
   }
 
-  #player {
-    position: absolute;
-    bottom: 80px;
-    left: 100px;
-    width: 40px;
-    height: 40px;
-    background: red;
-    border-radius: 10px;
+  #board {
+    display: grid;
+    grid-template-columns: repeat(4, 70px);
+    grid-template-rows: repeat(4, 70px);
+    gap: 5px;
+    margin: 20px auto;
   }
 
-  .block {
-    position: absolute;
-    bottom: 200px;
-    width: 50px;
-    height: 50px;
-    background: gold;
-  }
-
-  .btns {
-    position: fixed;
-    bottom: 20px;
-    width: 100%;
+  .tile {
+    background: #f7c1d9;
+    color: #555;
+    font-size: 24px;
+    font-weight: bold;
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+    user-select: none;
+  }
+
+  .empty {
+    background: #eee;
   }
 
   button {
-    font-size: 20px;
-    padding: 20px;
-    border-radius: 50%;
+    padding: 10px 20px;
     border: none;
-    background: rgba(0,0,0,0.3);
+    border-radius: 20px;
+    background: #b5838d;
     color: white;
+    font-size: 16px;
   }
 </style>
 </head>
 <body>
 
 <div id="game">
-  <div id="player"></div>
-  <div class="block" style="left:400px;"></div>
-  <div class="block" style="left:700px;"></div>
-  <div class="ground"></div>
-</div>
-
-<div class="btns">
-  <button id="left">←</button>
-  <button id="jump">JUMP</button>
-  <button id="right">→</button>
+  <h1>スライドパズル</h1>
+  <div id="board"></div>
+  <button onclick="shuffle()">シャッフル</button>
 </div>
 
 <script>
-const player = document.getElementById("player");
+const size = 4;
+let tiles = [];
 
-let x = 100;
-let y = 0;
-let vy = 0;
-
-const gravity = 0.6;
-let jumping = false;
-
-let left = false;
-let right = false;
-
-function update() {
-  if (left) x -= 3;
-  if (right) x += 3;
-
-  // 重力
-  vy -= gravity;
-  y += vy;
-
-  // 地面判定
-  if (y <= 0) {
-    y = 0;
-    vy = 0;
-    jumping = false;
-  }
-
-  player.style.left = x + "px";
-  player.style.bottom = 80 + y + "px";
-
-  requestAnimationFrame(update);
+function init() {
+  tiles = [];
+  for (let i = 1; i <= 15; i++) tiles.push(i);
+  tiles.push(null); // 空白
+  draw();
 }
-update();
 
-// タッチ操作
-document.getElementById("left").ontouchstart = () => left = true;
-document.getElementById("left").ontouchend = () => left = false;
-
-document.getElementById("right").ontouchstart = () => right = true;
-document.getElementById("right").ontouchend = () => right = false;
-
-document.getElementById("jump").ontouchstart = () => {
-  if (!jumping) {
-    vy = 12;   // 上に跳ぶ力
-    jumping = true;
-  }
-};
-
-// キーボード操作（PC用）
-document.addEventListener("keydown", e => {
-  if (e.key === "ArrowLeft") left = true;
-  if (e.key === "ArrowRight") right = true;
-  if (e.key === " ") {
-    if (!jumping) {
-      vy = 12;
-      jumping = true;
+function draw() {
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+  tiles.forEach((num, i) => {
+    const div = document.createElement("div");
+    div.className = "tile";
+    if (num === null) {
+      div.classList.add("empty");
+    } else {
+      div.textContent = num;
+      div.onclick = () => move(i);
     }
-  }
-});
+    board.appendChild(div);
+  });
+}
 
-document.addEventListener("keyup", e => {
-  if (e.key === "ArrowLeft") left = false;
-  if (e.key === "ArrowRight") right = false;
-});
+function move(index) {
+  const emptyIndex = tiles.indexOf(null);
+  const row = Math.floor(index / size);
+  const col = index % size;
+  const erow = Math.floor(emptyIndex / size);
+  const ecol = emptyIndex % size;
+
+  if (Math.abs(row - erow) + Math.abs(col - ecol) === 1) {
+    [tiles[index], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[index]];
+    draw();
+    checkClear();
+  }
+}
+
+function shuffle() {
+  for (let i = 0; i < 200; i++) {
+    const emptyIndex = tiles.indexOf(null);
+    const moves = [];
+    const row = Math.floor(emptyIndex / size);
+    const col = emptyIndex % size;
+    if (row > 0) moves.push(emptyIndex - size);
+    if (row < size - 1) moves.push(emptyIndex + size);
+    if (col > 0) moves.push(emptyIndex - 1);
+    if (col < size - 1) moves.push(emptyIndex + 1);
+    const r = moves[Math.floor(Math.random() * moves.length)];
+    [tiles[emptyIndex], tiles[r]] = [tiles[r], tiles[emptyIndex]];
+  }
+  draw();
+}
+
+function checkClear() {
+  for (let i = 0; i < 15; i++) {
+    if (tiles[i] !== i + 1) return;
+  }
+  alert("🎉 クリア！おめでとう！");
+}
+
+init();
 </script>
 
 </body>
